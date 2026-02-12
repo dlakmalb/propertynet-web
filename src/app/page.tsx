@@ -1,15 +1,27 @@
-import { Card } from 'antd';
-import styles from './page.module.css';
-import Title from 'antd/es/typography/Title';
-import Paragraph from 'antd/es/typography/Paragraph';
+"use client";
+
+import { Card, Typography, Button, Space } from "antd";
+import styles from "./page.module.css";
+
+const { Title, Paragraph } = Typography;
 
 export default function Home() {
   return (
     <main className={styles.container}>
       <Card className={styles.card}>
-        <Title style={{ marginBottom: 8 }}>Propertynet</Title>
+        <Space orientation="vertical" size={12} style={{ width: "100%" }}>
+          <Title level={1} style={{ margin: 0 }}>
+            Propertynet
+          </Title>
 
-        <Paragraph type="secondary">Next.js 16 + Ant Design </Paragraph>
+          <Paragraph type="secondary" style={{ margin: 0 }}>
+            Find properties, compare locations, and manage listings - coming soon.
+          </Paragraph>
+
+          <Space style={{ justifyContent: "center", width: "100%", marginTop: 8 }}>
+            <Button type="primary">Sign in</Button>
+          </Space>
+        </Space>
       </Card>
     </main>
   );
