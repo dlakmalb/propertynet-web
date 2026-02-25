@@ -1,28 +1,36 @@
-"use client";
+'use client';
 
-import React from "react";
-import { ConfigProvider, theme } from "antd";
+import React, { useState } from 'react';
+import { ConfigProvider } from 'antd';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const antdTheme = {
+  token: {
+    colorPrimary: '#2563EB',
+    colorLink: '#2563EB',
+    colorText: '#111827',
+    colorTextSecondary: '#6B7280',
+    colorBorder: '#E5E7EB',
+    fontFamily: 'var(--font-inter), system-ui, -apple-system',
+  },
+} as const;
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
-  return (
-    <ConfigProvider
-      theme={{
-        algorithm: theme.defaultAlgorithm,
-        token: {
-          colorPrimary: "#2563EB",
-          colorBgLayout: "#F5F7FB",
-          colorBgContainer: "#FFFFFF",
-          colorText: "#111827",
-          colorTextSecondary: "#6B7280",
-          colorBorder: "#E5E7EB",
-
-          borderRadius: 12,
-          fontFamily:
-            "system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif",
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            retry: false,
+            refetchOnWindowFocus: false,
+          },
         },
-      }}
-    >
-      {children}
-    </ConfigProvider>
+      }),
+  );
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ConfigProvider theme={antdTheme}>{children}</ConfigProvider>
+    </QueryClientProvider>
   );
 }
