@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
-import { AppProviders } from '@/providers/app-providers';
+import { AppProviders } from '@/providers/AppProviders';
 import './globals.css';
 
 const inter = Inter({

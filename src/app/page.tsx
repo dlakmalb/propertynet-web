@@ -19,7 +19,7 @@ export default function Home() {
           </Paragraph>
 
           <Space style={{ justifyContent: 'center', width: '100%', marginTop: 8 }}>
-            <Button type="primary" href="/extranet">
+            <Button type="primary" href="/extranet/login">
               Sign in
             </Button>
           </Space>

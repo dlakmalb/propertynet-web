@@ -4,17 +4,15 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Alert, Spin } from 'antd';
 
-import { useMe } from '@/features/auth/use-me';
+import { useMe } from '@/modules/auth/hooks/useMe';
 
 export default function ProtectedExtranetLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  console.log('Call 1');
-  const { data, isLoading, error } = useMe();
+  const { isLoading, error } = useMe();
 
-  console.log(data);
   useEffect(() => {
     if (error?.status === 401) {
-      router.replace('/extranet');
+      router.replace('/extranet/login');
     }
   }, [error, router]);
 

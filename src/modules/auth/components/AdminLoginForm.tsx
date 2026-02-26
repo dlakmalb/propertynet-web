@@ -1,13 +1,13 @@
 'use client';
 
 import { Alert, Button, Card, Checkbox, Form, Input, Space, Typography } from 'antd';
-import styles from './page.module.css';
+import styles from './adminLoginForm.module.css';
 import { Lock, User } from 'lucide-react';
 import { useState } from 'react';
 import { login } from '@/lib/api/auth';
 import { useRouter } from 'next/navigation';
 import { ApiError } from '@/lib/api/http';
-import { meQueryKey } from '@/features/auth/use-me';
+import { meQueryKey } from '@/modules/auth/hooks/useMe';
 import { useQueryClient } from '@tanstack/react-query';
 
 type LoginFormValues = {
