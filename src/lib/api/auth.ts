@@ -1,4 +1,4 @@
-import { apiFetch } from './http';
+import { apiFetch } from './client';
 
 export type AuthUser = {
   id: string;

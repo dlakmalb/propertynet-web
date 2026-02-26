@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { me, type AuthUser } from '@/lib/api/auth';
-import type { ApiError } from '@/lib/api/http';
+import type { ApiError } from '@/lib/api/client';
 
 export const meQueryKey = ['auth', 'me'] as const;
 

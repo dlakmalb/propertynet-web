@@ -6,7 +6,7 @@ import { Lock, User } from 'lucide-react';
 import { useState } from 'react';
 import { login } from '@/lib/api/auth';
 import { useRouter } from 'next/navigation';
-import { ApiError } from '@/lib/api/http';
+import { ApiError } from '@/lib/api/client';
 import { meQueryKey } from '@/modules/auth/hooks/useMe';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -20,9 +20,22 @@ export default function AdminLoginForm() {
   const router = useRouter();
   const qc = useQueryClient();
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const [form] = Form.useForm<LoginFormValues>();
 
+  const clearErrors = () => {
+    if (error) setError(null);
+
+    form.setFields([
+      { name: 'email', errors: [] },
+      { name: 'password', errors: [] },
+    ]);
+  };
+
   const onFinish = async (values: LoginFormValues) => {
+    if (submitting) return;
+
+    setSubmitting(true);
     setError(null);
 
     try {
@@ -44,6 +57,8 @@ export default function AdminLoginForm() {
       }
 
       setError('Something went wrong. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -59,9 +74,16 @@ export default function AdminLoginForm() {
 
           {error ? <Alert type="error" showIcon title={error} /> : null}
 
-          <Form form={form} layout="vertical" onFinish={onFinish} requiredMark={false}>
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={onFinish}
+            requiredMark={false}
+            onValuesChange={clearErrors}
+          >
             <Form.Item name="email" rules={[{ required: true, message: 'Please enter email' }]}>
               <Input
+                disabled={submitting}
                 size="large"
                 placeholder="Enter your Email"
                 prefix={<User size={16} />}
@@ -77,6 +99,7 @@ export default function AdminLoginForm() {
               ]}
             >
               <Input.Password
+                disabled={submitting}
                 size="large"
                 placeholder="Enter your Password"
                 prefix={<Lock size={16} />}
@@ -86,12 +109,12 @@ export default function AdminLoginForm() {
 
             <div className={styles.row}>
               <Form.Item name="remember" valuePropName="checked" noStyle>
-                <Checkbox>Remember me</Checkbox>
+                <Checkbox disabled={submitting}>Remember me</Checkbox>
               </Form.Item>
               <Typography.Link href="#">Forgot password?</Typography.Link>
             </div>
 
-            <Button type="primary" htmlType="submit" size="large" block>
+            <Button type="primary" htmlType="submit" size="large" block loading={submitting}>
               Login
             </Button>
           </Form>
