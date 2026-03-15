@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Alert, Spin } from 'antd';
 
 import { useMe } from '@/modules/auth/hooks/useMe';
+import DashboardLayout from '@/modules/admin/components/DashboardLayout';
 
 export default function ProtectedExtranetLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function ProtectedExtranetLayout({ children }: { children: React.
 
   if (isLoading) {
     return (
-      <main style={{ minHeight: '60vh', display: 'grid', placeItems: 'center' }}>
+      <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
         <Spin size="large" />
       </main>
     );
@@ -33,6 +34,6 @@ export default function ProtectedExtranetLayout({ children }: { children: React.
     );
   }
 
-  // If user exists, allow rendering
-  return <>{children}</>;
+  // If user exists, allow rendering with dashboard layout
+  return <DashboardLayout>{children}</DashboardLayout>;
 }

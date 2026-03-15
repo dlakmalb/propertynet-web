@@ -1,0 +1,55 @@
+.layout {
+  min-height: 100vh;
+}
+
+.logo {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.logoText {
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.logoCollapsed {
+  font-size: 16px;
+}
+
+.header {
+  padding: 0 24px;
+  height: 64px;
+  line-height: 64px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.content {
+  transition: margin 0.2s;
+}
+
+/* Mobile Drawer styles */
+.mobileDrawer :global(.ant-drawer-body) {
+  padding: 0 !important;
+  background: #001529 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+  .header {
+    padding: 0 12px;
+  }
+}
