@@ -13,7 +13,7 @@ export default function ProtectedExtranetLayout({ children }: { children: React.
 
   useEffect(() => {
     if (error?.status === 401) {
-      router.replace('/extranet/login');
+      // router.replace('/extranet/login');
     }
   }, [error, router]);
 

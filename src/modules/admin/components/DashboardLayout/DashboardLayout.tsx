@@ -55,7 +55,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         placement="left"
         onClose={handleMobileMenuClose}
         open={mobileMenuOpen}
-        width={250}
+        size={250}
         closable={false}
         styles={{
           header: { display: 'none' },

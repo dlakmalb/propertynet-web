@@ -12,16 +12,16 @@ import {
   Row,
   Col,
   message,
+  Spin,
   Divider,
   Space,
 } from 'antd';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useCreateProperty } from '@/modules/admin/hooks/useProperties';
+import { useRouter, useParams } from 'next/navigation';
+import { useProperty, useUpdateProperty } from '@/modules/admin/hooks/useProperties';
 import { usePropertyTypesTree } from '@/modules/admin/hooks/usePropertyTypes';
-import { useMe } from '@/modules/auth/hooks/useMe';
 import type {
-  CreatePropertyDto,
+  UpdatePropertyDto,
   CreatePropertyDwellingDto,
   PropertyPurpose,
   PropertyStatus,
@@ -64,6 +64,8 @@ const PURPOSE_OPTIONS = [
 const STATUS_OPTIONS = [
   { value: 'draft', label: 'Draft' },
   { value: 'published', label: 'Published' },
+  { value: 'sold', label: 'Sold' },
+  { value: 'rented', label: 'Rented' },
   { value: 'archived', label: 'Archived' },
 ];
 
@@ -87,14 +89,20 @@ const DWELLING_SIZE_UNIT_OPTIONS = [
   { value: 'sqm', label: 'Sq. M.' },
 ];
 
-export default function AddPropertyPage() {
+export default function EditPropertyPage() {
   const router = useRouter();
+  const params = useParams();
+  const propertyId = params.id as string;
+
   const [form] = Form.useForm<PropertyFormValues>();
   const [messageApi, contextHolder] = message.useMessage();
 
-  const { data: user } = useMe();
+  const { data: property, isLoading, error } = useProperty(propertyId);
   const { data: propertyTypes, isLoading: typesLoading } = usePropertyTypesTree();
-  const createProperty = useCreateProperty();
+  const updateProperty = useUpdateProperty();
+
+  // Track if we've initialized the form
+  const [initialized, setInitialized] = useState(false);
 
   // Property types selection (multiple types allowed)
   const [typeSelections, setTypeSelections] = useState<PropertyTypeSelection[]>([
@@ -103,6 +111,54 @@ export default function AddPropertyPage() {
 
   // Dwellings (multiple dwellings allowed)
   const [dwellings, setDwellings] = useState<CreatePropertyDwellingDto[]>([{}]);
+
+  // Initialize form data once when property loads
+  if (property && !initialized) {
+    form.setFieldsValue({
+      title: property.title,
+      description: property.description || undefined,
+      purpose: property.purpose,
+      price: property.price,
+      currency: property.currency,
+      status: property.status,
+      province: property.location?.province || '',
+      district: property.location?.district || '',
+      city: property.location?.city || '',
+      address: property.location?.address || '',
+      country: property.location?.country,
+      latitude: property.location?.latitude ?? undefined,
+      longitude: property.location?.longitude ?? undefined,
+      landSize: property.land?.size,
+      landSizeUnit: property.land?.sizeUnit ?? undefined,
+    });
+
+    // Set type selections from property
+    if (property.typeMappers && property.typeMappers.length > 0) {
+      setTypeSelections(
+        property.typeMappers.map((tm) => ({
+          mainType: tm.mainType.id,
+          subType: tm.subType?.id || null,
+        })),
+      );
+    }
+
+    // Set dwellings from property
+    if (property.dwellings && property.dwellings.length > 0) {
+      setDwellings(
+        property.dwellings.map((d) => ({
+          name: d.name,
+          size: d.size,
+          sizeUnit: d.sizeUnit,
+          bedroomCount: d.bedroomCount,
+          bathroomCount: d.bathroomCount,
+          kitchenCount: d.kitchenCount,
+          parkingSpaces: d.parkingSpaces,
+        })),
+      );
+    }
+
+    setInitialized(true);
+  }
 
   // Get main types (parent types)
   const mainTypeOptions = useMemo(() => {
@@ -137,7 +193,7 @@ export default function AddPropertyPage() {
     const updated = [...typeSelections];
     updated[index] = { ...updated[index], [field]: value };
     if (field === 'mainType') {
-      updated[index].subType = null; // Reset subType when mainType changes
+      updated[index].subType = null;
     }
     setTypeSelections(updated);
   };
@@ -161,11 +217,6 @@ export default function AddPropertyPage() {
   };
 
   const handleSubmit = async (values: PropertyFormValues) => {
-    if (!user?.id) {
-      messageApi.error('User not authenticated');
-      return;
-    }
-
     // Validate at least one type with mainType selected
     const validTypes = typeSelections.filter((t) => t.mainType);
     if (validTypes.length === 0) {
@@ -173,7 +224,7 @@ export default function AddPropertyPage() {
       return;
     }
 
-    const payload: CreatePropertyDto = {
+    const payload: UpdatePropertyDto = {
       title: values.title,
       description: values.description || null,
       purpose: values.purpose,
@@ -183,8 +234,7 @@ export default function AddPropertyPage() {
       })),
       price: values.price,
       currency: values.currency || 'LKR',
-      status: values.status || 'draft',
-      ownerId: user.id,
+      status: values.status,
       location: {
         province: values.province,
         district: values.district,
@@ -203,17 +253,33 @@ export default function AddPropertyPage() {
               size: values.landSize,
               sizeUnit: values.landSizeUnit || null,
             }
-          : undefined,
+          : null,
     };
 
     try {
-      await createProperty.mutateAsync(payload);
-      messageApi.success('Property created successfully');
+      await updateProperty.mutateAsync({ id: propertyId, data: payload });
+      messageApi.success('Property updated successfully');
       router.push('/extranet/properties');
     } catch {
-      messageApi.error('Failed to create property');
+      messageApi.error('Failed to update property');
     }
   };
+
+  if (isLoading) {
+    return (
+      <div style={{ textAlign: 'center', padding: 48 }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <Typography.Text type="danger">Failed to load property: {error.message}</Typography.Text>
+      </Card>
+    );
+  }
 
   return (
     <div>
@@ -228,18 +294,13 @@ export default function AddPropertyPage() {
           Back to Properties
         </Button>
         <Title level={2} style={{ margin: 0 }}>
-          Add New Property
+          Edit Property
         </Title>
-        <Text type="secondary">Fill in the details to list a new property</Text>
+        <Text type="secondary">Update the property details</Text>
       </div>
 
       <Card>
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleSubmit}
-          initialValues={{ status: 'draft', currency: 'LKR', country: 'Sri Lanka' }}
-        >
+        <Form form={form} layout="vertical" onFinish={handleSubmit}>
           {/* Basic Information */}
           <Title level={5}>Basic Information</Title>
           <Row gutter={24}>
@@ -423,16 +484,17 @@ export default function AddPropertyPage() {
           <Row gutter={24}>
             <Col xs={24} md={12}>
               <Form.Item name="landSize" label="Land Size">
-                <InputNumber style={{ width: '100%' }} min={0} step={0.01} placeholder="e.g. 10.5" />
+                <InputNumber
+                  style={{ width: '100%' }}
+                  min={0}
+                  step={0.01}
+                  placeholder="e.g. 10.5"
+                />
               </Form.Item>
             </Col>
             <Col xs={24} md={12}>
               <Form.Item name="landSizeUnit" label="Size Unit">
-                <Select
-                  placeholder="Select unit"
-                  options={LAND_SIZE_UNIT_OPTIONS}
-                  allowClear
-                />
+                <Select placeholder="Select unit" options={LAND_SIZE_UNIT_OPTIONS} allowClear />
               </Form.Item>
             </Col>
           </Row>
@@ -551,11 +613,11 @@ export default function AddPropertyPage() {
               type="primary"
               htmlType="submit"
               size="large"
-              loading={createProperty.isPending}
+              loading={updateProperty.isPending}
             >
-              Create Property
+              Update Property
             </Button>
-            <Button onClick={() => router.back()} disabled={createProperty.isPending}>
+            <Button onClick={() => router.back()} disabled={updateProperty.isPending}>
               Cancel
             </Button>
           </Space>
